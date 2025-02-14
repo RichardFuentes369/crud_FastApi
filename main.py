@@ -245,7 +245,6 @@ def login():
 @app.get('/refresh-token', tags=["Login"])
 def refreshToken():
     return 'Hola mundo!'
-
 @app.get('/logout', tags=["Login"])
 def logout():
     return 'Hola mundo!'
