@@ -1,8 +1,7 @@
 from typing import Optional
 from fastapi import Query, status, Body, APIRouter
 from fastapi.responses import JSONResponse
-from src.models.user_model import User, UserCreate, UserUpdate
-
+from src.usuarios.models.user_model import User, UserCreate, UserUpdate
 
 users = [
     {
@@ -224,12 +223,11 @@ users = [
     }
 ]
   
-
-user_admin_router = APIRouter()
+user_router_final = APIRouter()
 
 # Usuarios Administradores
-@user_admin_router.get('/listarUA', tags=["usuario-administrador"])
-def listarUA(
+@user_router_final.get('/listarUF', tags=["usuario-final"])
+def listarUF(
     porPagina: int = Query(10, description="Número de items por página"),
     numeroPagina: int = Query(1, description="Número de página"),
     sort: Optional[str] = Query(None, description="Campo por el cual ordenar (ej: nombre, apellido)"),
@@ -258,8 +256,8 @@ def listarUA(
         status_code = status.HTTP_200_OK, 
         content = content,
     )
-@user_admin_router.get('/detalleUA', tags=["usuario-administrador"])
-def detalleUA(
+@user_router_final.get('/detalleUF', tags=["usuario-final"])
+def detalleUF(
     _campoFiltro: Optional[str] = Query(None, description="Campo por el cual filtrar"),
     _palabraFiltro: Optional[str] = Query(None, description="Valor por el cual va a filtrar"),
 ):
@@ -296,8 +294,8 @@ def detalleUA(
             "data": usuarios_filtrados
         }
     )
-@user_admin_router.post('/crearUA', tags=["usuario-administrador"])
-def crearUA(
+@user_router_final.post('/crearUF', tags=["usuario-final"])
+def crearUF(
     user: UserCreate
 ):
     # Filtrado
@@ -325,8 +323,8 @@ def crearUA(
                 "data": user.model_dump()
             }
         )
-@user_admin_router.delete('/eliminarUA', tags=["usuario-administrador"])
-def eliminarUA(
+@user_router_final.delete('/eliminarUF', tags=["usuario-final"])
+def eliminarUF(
     _id: int = Query(None, description="Id del usuario a eliminar"),
 ):        
     # Filtrado
@@ -359,8 +357,8 @@ def eliminarUA(
             "data": usuarios_filtrados
         }
     )
-@user_admin_router.put('/actualizarUA/{_idUsuario}', tags=["usuario-administrador"])
-def actualizarUA(
+@user_router_final.put('/actualizarUF/{_idUsuario}', tags=["usuario-final"])
+def actualizarUF(
     _idUsuario: int, 
     user: UserUpdate
 ):

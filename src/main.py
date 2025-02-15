@@ -1,31 +1,32 @@
 from fastapi import FastAPI
-from fastapi.responses import RedirectResponse
-from src.routes.user_router import user_admin_router
+from fastapi.requests import Request
+from fastapi.responses import RedirectResponse, Response, JSONResponse
+
+
+# Importando rutas de modulos
+from src.login.routes.login_router import login_router
+from src.usuarios.routes.user_admin_router import user_router_administrador
+from src.usuarios.routes.user_final_router import user_router_final
+
 
 app = FastAPI()
 
 app.title = "Proyecto FastApi"
 app.version = "1.0.0 - Beta"
 
+@app.middleware('http')
+async def http_error_handler(request: Request, call_next) -> Response | JSONResponse:
+    print('Middleware is running!')
+    return await call_next(request)
+
+
 @app.get('/', tags=["Home"])
 def welcome():
     return RedirectResponse("/docs")
 
 # Usuarios
-app.include_router(prefix="/userA", router=user_admin_router)
+app.include_router(prefix="/login", router=login_router)
+app.include_router(prefix="/usuarios-administradores", router=user_router_administrador)
+app.include_router(prefix="/usuarios-finales", router=user_router_final)
 
-# Login
-@app.get('/login', tags=["Login"])
-def login():
-    return {
-        "sub": "",
-        "token": "",
-        "iat": "121221",
-    }
-@app.get('/refresh-token', tags=["Login"])
-def refreshToken():
-    return 'Hola mundo!'
-@app.get('/logout', tags=["Login"])
-def logout():
-    return 'Hola mundo!'
 
