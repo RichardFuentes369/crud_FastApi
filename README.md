@@ -9,8 +9,8 @@ pip install fastapi uvicorn email-validator (modulos necesarios)
 
 
 ## Correr proycto
-uvicorn main:app --port 8000 --reload (corre "localmente" app)
-uvicorn main:app --port 2020 --host 0.0.0.0 --reload (corre "ejecutandose en red" app)
+uvicorn src.main:app --port 8000 --reload (corre "localmente" app)
+uvicorn src.main:app --port 2020 --host 0.0.0.0 --reload (corre "ejecutandose en red" app)
 
 ## Documentación EndPoints
 http://localhost:8000/docs (documentacion endpoints)

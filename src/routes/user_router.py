@@ -1,13 +1,7 @@
-from fastapi import FastAPI, Query, Path, HTTPException, status, Body
-from typing import List, Optional
-from fastapi.responses import JSONResponse, RedirectResponse
-from pydantic import BaseModel, EmailStr, Field
 from typing import Optional
-
-app = FastAPI()
-
-app.title = "Proyecto FastApi"
-app.version = "1.0.0 - Beta"
+from fastapi import Query, status, Body, APIRouter
+from fastapi.responses import JSONResponse
+from src.models.user_model import User, UserCreate, UserUpdate
 
 
 users = [
@@ -231,50 +225,10 @@ users = [
 ]
   
 
-# Inicio Modelo
-class User(BaseModel):
-    id: Optional[int] = None
-    nombres: str
-    apellidos: str
-    telefono: str
-    correo: str
-
-class UserCreate(BaseModel):
-    id: Optional[int] = None
-    nombres: str = Field(min_length=3, max_length=50)
-    apellidos: str = Field(min_length=3, max_length=50)
-    correo: EmailStr
-    telefono: str
-
-class UserUpdate(BaseModel):
-    nombres: str
-    apellidos: str
-    correo: EmailStr
-    telefono: str
-
-
-@app.get('/', tags=["Home"])
-def welcome():
-    return RedirectResponse("/docs")
-
-# Login
-@app.get('/login', tags=["Login"])
-def login():
-    return {
-        "sub": "",
-        "token": "",
-        "iat": "121221",
-    }
-@app.get('/refresh-token', tags=["Login"])
-def refreshToken():
-    return 'Hola mundo!'
-@app.get('/logout', tags=["Login"])
-def logout():
-    return 'Hola mundo!'
-
+user_admin_router = APIRouter()
 
 # Usuarios Administradores
-@app.get('/listarUA', tags=["usuario-administrador"])
+@user_admin_router.get('/listarUA', tags=["usuario-administrador"])
 def listarUA(
     porPagina: int = Query(10, description="Número de items por página"),
     numeroPagina: int = Query(1, description="Número de página"),
@@ -304,7 +258,7 @@ def listarUA(
         status_code = status.HTTP_200_OK, 
         content = content,
     )
-@app.get('/detalleUA', tags=["usuario-administrador"])
+@user_admin_router.get('/detalleUA', tags=["usuario-administrador"])
 def detalleUA(
     _campoFiltro: Optional[str] = Query(None, description="Campo por el cual filtrar"),
     _palabraFiltro: Optional[str] = Query(None, description="Valor por el cual va a filtrar"),
@@ -328,21 +282,21 @@ def detalleUA(
             usuario for usuario in usuarios_filtrados if _palabraFiltro.lower() in str(usuario.get(_campoFiltro, "")).lower()
         ]
 
-    mensaje = ''
-
     if len(usuarios_filtrados):
         mensaje = "Usuario encontrado con exito"
+        code = status.HTTP_200_OK
     else:
         mensaje = "Usuario no existe en nuestra base de datos"
+        code = status.HTTP_404_NOT_FOUND
     
     return JSONResponse(
-        status_code=status.HTTP_200_OK,
+        status_code=code,
         content={
             "mensaje": mensaje, 
             "data": usuarios_filtrados
         }
     )
-@app.post('/crearUA', tags=["usuario-administrador"])
+@user_admin_router.post('/crearUA', tags=["usuario-administrador"])
 def crearUA(
     user: UserCreate
 ):
@@ -371,7 +325,7 @@ def crearUA(
                 "data": user.model_dump()
             }
         )
-@app.delete('/eliminarUA', tags=["usuario-administrador"])
+@user_admin_router.delete('/eliminarUA', tags=["usuario-administrador"])
 def eliminarUA(
     _id: int = Query(None, description="Id del usuario a eliminar"),
 ):        
@@ -384,7 +338,7 @@ def eliminarUA(
 
     if len(usuarios_filtrados) == 0:
         return JSONResponse(
-            status_code=status.HTTP_400_BAD_REQUEST,
+            status_code=status.HTTP_404_NOT_FOUND,
             content={
                 "mensaje": "El usuario con id '{_id}' no existe en nuestros registros.", 
                 "data": []
@@ -405,7 +359,7 @@ def eliminarUA(
             "data": usuarios_filtrados
         }
     )
-@app.put('/actualizarUA/{_idUsuario}', tags=["usuario-administrador"])
+@user_admin_router.put('/actualizarUA/{_idUsuario}', tags=["usuario-administrador"])
 def actualizarUA(
     _idUsuario: int, 
     user: UserUpdate
@@ -444,4 +398,3 @@ def actualizarUA(
     )
     
             
-
