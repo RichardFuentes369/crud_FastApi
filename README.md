@@ -5,7 +5,7 @@
 cd ./project   (crea una carpeta)
 python3.12 -m venv venv (instala entorno virtual)
 source venv/bin/activate (activa entorno virtual)
-pip install fastapi uvicorn (modulos necesarios)
+pip install fastapi uvicorn email-validator (modulos necesarios)
 
 
 ## Correr proycto

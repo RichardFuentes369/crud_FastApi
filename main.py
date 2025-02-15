@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Query, Path, HTTPException, status, Body
 from typing import List, Optional
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr, Field
 from typing import Optional
 
 
@@ -237,7 +237,20 @@ class User(BaseModel):
     id: Optional[int] = None
     nombres: str
     apellidos: str
+    telefono: str
     correo: str
+
+class UserCreate(BaseModel):
+    id: Optional[int] = None
+    nombres: str = Field(min_length=3, max_length=50)
+    apellidos: str = Field(min_length=3, max_length=50)
+    correo: EmailStr
+    telefono: str
+
+class UserUpdate(BaseModel):
+    nombres: str
+    apellidos: str
+    correo: EmailStr
     telefono: str
 
 
@@ -299,7 +312,7 @@ def detalleUA(
     for usuario in users:
         if _campoFiltro not in usuario:
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
+                status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"El campo '{_campoFiltro}' no existe en los datos de usuario."
             )
         
@@ -326,7 +339,7 @@ def detalleUA(
     )
 @app.post('/crearUA', tags=["usuario-administrador"])
 def crearUA(
-    user: User
+    user: UserCreate
 ):
     # Filtrado
     usuarios_filtrados = users
@@ -338,7 +351,7 @@ def crearUA(
 
     if len(usuarios_filtrados):
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
+            status_code=status.HTTP_409_CONFLICT,
             detail = f"El correo'{user.correo}'ya esta registrador"
         )
     else:
@@ -384,26 +397,38 @@ def eliminarUA(
     )
 @app.put('/actualizarUA/{_idUsuario}', tags=["usuario-administrador"])
 def actualizarUA(
-    _idUsuario: int, user: User
+    _idUsuario: int, 
+    user: UserUpdate
 ):
-    for item in users:
+    
+    # Filtrado
+    usuarios_filtrados = users
+    if _idUsuario:
+        usuarios_filtrados = [
+            usuario for usuario in usuarios_filtrados if usuario['id'] == _idUsuario
+        ]
+    
+    if len(usuarios_filtrados) == 0:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"El usuario con id '{_idUsuario}' no existe en nuestros registros."
+        )
+               
+    for item in usuarios_filtrados:
         if item['id'] == _idUsuario:
             item['nombres'] = user.nombres
             item['apellidos'] = user.apellidos
             item['correo'] = user.correo
             item['telefono'] = user.telefono
-        else:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"El usuario con id: '{_idUsuario}' no existe en nuestros registros."
-            )
             break
-            
+
     return JSONResponse(
         status_code=status.HTTP_200_OK,
         content={
             "mensaje": "El usuario fue actualizado con exito", 
-            "data": user
+            "data": item
         }
     )
+    
+            
 
