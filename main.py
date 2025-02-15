@@ -1,6 +1,8 @@
 from fastapi import FastAPI, Query, Path, HTTPException, status, Body
 from typing import List, Optional
 from fastapi.responses import JSONResponse
+from pydantic import BaseModel
+from typing import Optional
 
 
 app = FastAPI()
@@ -230,6 +232,15 @@ users = [
 ]
   
 
+# Inicio Modelo
+class User(BaseModel):
+    id: Optional[int] = None
+    nombres: str
+    apellidos: str
+    correo: str
+    telefono: str
+
+
 @app.get('/', tags=["Home"])
 def welcome():
     return 'Welcome to my app!'
@@ -315,30 +326,30 @@ def detalleUA(
     )
 @app.post('/crearUA', tags=["usuario-administrador"])
 def crearUA(
-    id:int = Body(), 
-    nombres: str = Body(), 
-    apellidos:str = Body(), 
-    correo:str = Body(), 
-    telefono:str = Body()
+    user: User
 ):
-    usuario_nuevo = {
-        'id': id,
-        'nombres': nombres,
-        'apellidos': apellidos,
-        'correo': correo,
-        'telefono': telefono
-    }
-    users.append(usuario_nuevo)
+    # Filtrado
+    usuarios_filtrados = users
+    if user.correo:
+        usuarios_filtrados = [
+            usuario for usuario in usuarios_filtrados
+            if user.correo in str(usuario.get('correo', "")).lower()
+        ]
 
-    mensaje = 'Usuario creado exitosamente'
-
-    return JSONResponse(
-        status_code=status.HTTP_200_OK,
-        content={
-            "mensaje": mensaje, 
-            "data": usuario_nuevo
-        }
-    )
+    if len(usuarios_filtrados):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail = f"El correo'{user.correo}'ya esta registrador"
+        )
+    else:
+        users.append(user.model_dump())
+        return JSONResponse(
+            status_code=status.HTTP_200_OK,
+            content={
+                "mensaje": "Usuario creado exitosamente", 
+                "data": user.model_dump()
+            }
+        )
 @app.delete('/eliminarUA', tags=["usuario-administrador"])
 def eliminarUA(
     _id: int = Query(None, description="Id del usuario a eliminar"),
@@ -371,6 +382,28 @@ def eliminarUA(
             "data": usuarios_filtrados
         }
     )
-@app.get('/actualizarUA/{_idUsuario}', tags=["usuario-administrador"])
-def actualizarUA():
-    return 'Actualizar Usuario'
+@app.put('/actualizarUA/{_idUsuario}', tags=["usuario-administrador"])
+def actualizarUA(
+    _idUsuario: int, user: User
+):
+    for item in users:
+        if item['id'] == _idUsuario:
+            item['nombres'] = user.nombres
+            item['apellidos'] = user.apellidos
+            item['correo'] = user.correo
+            item['telefono'] = user.telefono
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"El usuario con id: '{_idUsuario}' no existe en nuestros registros."
+            )
+            break
+            
+    return JSONResponse(
+        status_code=status.HTTP_200_OK,
+        content={
+            "mensaje": "El usuario fue actualizado con exito", 
+            "data": user
+        }
+    )
+

@@ -9,7 +9,7 @@ pip install fastapi uvicorn (modulos necesarios)
 
 
 ## Correr proycto
-uvicorn main:app --port 2020 --reload (corre "localmente" app)
+uvicorn main:app --port 8000 --reload (corre "localmente" app)
 uvicorn main:app --port 2020 --host 0.0.0.0 --reload (corre "ejecutandose en red" app)
 
 ## Documentación EndPoints
