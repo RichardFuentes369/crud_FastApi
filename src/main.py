@@ -4,9 +4,9 @@ from fastapi.responses import RedirectResponse, Response, JSONResponse
 
 
 # Importando rutas de modulos
-from src.login.routes.login_router import login_router
-from src.usuarios.routes.user_admin_router import user_router_administrador
-from src.usuarios.routes.user_final_router import user_router_final
+from src.modulos.login.routes.login_router import login_router
+from src.modulos.usuarios.routes.user_admin_router import user_router_administrador
+from src.modulos.usuarios.routes.user_final_router import user_router_final
 
 
 app = FastAPI()
