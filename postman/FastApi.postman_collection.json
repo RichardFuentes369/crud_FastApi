@@ -1,0 +1,186 @@
+{
+	"info": {
+		"_postman_id": "66ac4448-3650-446a-9d54-8457e6484038",
+		"name": "FastApi",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "7819792"
+	},
+	"item": [
+		{
+			"name": "users",
+			"item": [
+				{
+					"name": "admin",
+					"item": [
+						{
+							"name": "getAdmins",
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8000/listarUA?porPagina=100&numeroPagina=1&sort=id",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8000",
+									"path": [
+										"listarUA"
+									],
+									"query": [
+										{
+											"key": "porPagina",
+											"value": "100"
+										},
+										{
+											"key": "numeroPagina",
+											"value": "1"
+										},
+										{
+											"key": "sort",
+											"value": "id"
+										},
+										{
+											"key": "campoFiltro",
+											"value": "nombres",
+											"disabled": true
+										},
+										{
+											"key": "filtro",
+											"value": "Javier",
+											"disabled": true
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "getAdmin-filtro",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8000/detalleUA?_campoFiltro=correo&_palabraFiltro=javierbaron6@gmail.com",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8000",
+									"path": [
+										"detalleUA"
+									],
+									"query": [
+										{
+											"key": "_campoFiltro",
+											"value": "correo"
+										},
+										{
+											"key": "_palabraFiltro",
+											"value": "javierbaron6@gmail.com"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "deleteAdmin",
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8000/eliminarUA?_id=1",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8000",
+									"path": [
+										"eliminarUA"
+									],
+									"query": [
+										{
+											"key": "_id",
+											"value": "1"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "postAdmin",
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"id\": 100,\n    \"nombres\": \"ERika\",\n    \"apellidos\": \"Gonzalez Zapata\",\n    \"correo\": \"erikas.gon@gmail.com\",\n    \"telefono\": \"1253639\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://localhost:8000/crearUA",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8000",
+									"path": [
+										"crearUA"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "putAdmin",
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"nombres\": \"Rpdrigo Eugenio\",\n    \"apellidos\": \"Gonzalez Zapata\",\n    \"correo\": \"rodri.eu@gmail.com\",\n    \"telefono\": \"1253639\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://localhost:8000/actualizarUA/2",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8000",
+									"path": [
+										"actualizarUA",
+										"2"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		}
+	]
+}

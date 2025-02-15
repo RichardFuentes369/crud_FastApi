@@ -1,9 +1,8 @@
 from fastapi import FastAPI, Query, Path, HTTPException, status, Body
 from typing import List, Optional
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 from pydantic import BaseModel, EmailStr, Field
 from typing import Optional
-
 
 app = FastAPI()
 
@@ -256,7 +255,7 @@ class UserUpdate(BaseModel):
 
 @app.get('/', tags=["Home"])
 def welcome():
-    return 'Welcome to my app!'
+    return RedirectResponse("/docs")
 
 # Login
 @app.get('/login', tags=["Login"])
@@ -299,9 +298,12 @@ def listarUA(
     # Paginación
     inicio = (numeroPagina - 1) * porPagina
     fin = inicio + porPagina
-    usuarios_paginados = usuarios_filtrados[inicio:fin]
+    content = usuarios_filtrados[inicio:fin]
 
-    return usuarios_paginados
+    return JSONResponse(
+        status_code = status.HTTP_200_OK, 
+        content = content,
+    )
 @app.get('/detalleUA', tags=["usuario-administrador"])
 def detalleUA(
     _campoFiltro: Optional[str] = Query(None, description="Campo por el cual filtrar"),
@@ -311,9 +313,12 @@ def detalleUA(
     # Validar que _campoFiltro exista en los usuarios
     for usuario in users:
         if _campoFiltro not in usuario:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"El campo '{_campoFiltro}' no existe en los datos de usuario."
+            return JSONResponse(
+                status_code = status.HTTP_404_NOT_FOUND,
+                content={
+                    "mensaje": f"El campo '{_campoFiltro}' no existe en los datos de usuario.", 
+                    "data": []
+                }
             )
         
     # Filtrado
@@ -350,9 +355,12 @@ def crearUA(
         ]
 
     if len(usuarios_filtrados):
-        raise HTTPException(
+        return JSONResponse(
             status_code=status.HTTP_409_CONFLICT,
-            detail = f"El correo'{user.correo}'ya esta registrador"
+            content={
+                "mensaje": f"El correo'{user.correo}'ya esta registrador",
+                "data": []
+            }
         )
     else:
         users.append(user.model_dump())
@@ -375,11 +383,13 @@ def eliminarUA(
         ]
 
     if len(usuarios_filtrados) == 0:
-        raise HTTPException(
+        return JSONResponse(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"El usuario con id '{_id}' no existe en nuestros registros."
+            content={
+                "mensaje": "El usuario con id '{_id}' no existe en nuestros registros.", 
+                "data": []
+            }
         )
-    
     # Filtro la posicion y la saco
     if _id:
         for i, user in enumerate(users):
@@ -409,11 +419,14 @@ def actualizarUA(
         ]
     
     if len(usuarios_filtrados) == 0:
-        raise HTTPException(
+        return JSONResponse(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"El usuario con id '{_idUsuario}' no existe en nuestros registros."
+            content={
+                "mensaje": "El usuario con id '{_idUsuario}' no existe en nuestros registros.", 
+                "data": []
+            }
         )
-               
+                   
     for item in usuarios_filtrados:
         if item['id'] == _idUsuario:
             item['nombres'] = user.nombres

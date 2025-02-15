@@ -14,3 +14,14 @@ uvicorn main:app --port 2020 --host 0.0.0.0 --reload (corre "ejecutandose en red
 
 ## Documentación EndPoints
 http://localhost:8000/docs (documentacion endpoints)
+
+
+
+## Errores
+    return JSONResponse(
+        status_code=status.HTTP_200_OK,
+        content={
+            "mensaje": "El usuario fue actualizado con exito", 
+            "data": item
+        }
+    )
