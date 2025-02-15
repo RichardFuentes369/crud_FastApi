@@ -5,8 +5,7 @@
 cd ./project   (crea una carpeta)
 python3.12 -m venv venv (instala entorno virtual)
 source venv/bin/activate (activa entorno virtual)
-pip install fastapi uvicorn email-validator (modulos necesarios)
-
+pip install fastapi uvicorn email-validator python-multipart python-jose (modulos necesarios)
 
 ## Correr proycto
 uvicorn src.main:app --port 8000 --reload (corre "localmente" app)
