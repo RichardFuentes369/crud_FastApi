@@ -5,16 +5,6 @@ from ..models.user_model import User, UserCreate, UserUpdate
 from ....config.db import conn  #connection
 from sqlalchemy import text
 from ..tables.user_admin import users #data_tabla
-
-##users = [
-##    {
-##    "id": 1,
-##    "nombres": "Javier Ricardo",
-##    "apellidos": "Baron Fuentes",
-##    "correo": "javierbaron6@gmail.com",
-##    "telefono": "35042844093"
-##    },
-##]
   
 user_router_administrador = APIRouter()
 
@@ -151,8 +141,6 @@ def detalleUA(
                 "data": result_dicts
             }
         )
-    
-
 
 @user_router_administrador.post('/crearUA', tags=["usuario-administrador"])
 def crearUA(
@@ -317,3 +305,15 @@ def actualizarUA(
         }
     )
     
+'''
+    Ya funciona el 
+        listarUA
+        detalleUA
+        eliminarUA
+
+    Falta el 
+        crearUA
+        actualizarUA
+        autenticacion
+    
+'''
