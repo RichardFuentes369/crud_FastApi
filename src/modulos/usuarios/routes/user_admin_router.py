@@ -188,36 +188,96 @@ def crearUA(
 def eliminarUA(
     _id: int = Query(None, description="Id del usuario a eliminar"),
 ):        
-    # Filtrado
-    usuarios_filtrados = users
-    if _id:
-        usuarios_filtrados = [
-            usuario for usuario in usuarios_filtrados if usuario['id'] == _id
-        ]
 
-    if len(usuarios_filtrados) == 0:
+    query = "SELECT * FROM mod_usuarios_administradores WHERE id = :_id"
+
+    # Ejecutar la consulta y obtener la descripción de las columnas
+    try:        
+        # Ejecutar la consulta con los parámetros
+        result = conn.execute(
+            text(query),
+            {"_id": _id}
+        )
+
+        # Obtener los nombres de las columnas
+        columns = [column[0] for column in result.cursor.description]  # Ahora usamos result.cursor.description para obtener las columnas
+        
+        # Obtener los resultados
+        rows = result.fetchall()
+
+        # Convertir las filas a diccionarios usando los nombres de las columnas
+        result_dicts = [dict(zip(columns, row)) for row in rows]
+
+        if len(result_dicts) > 0:
+            query = "DELETE FROM mod_usuarios_administradores WHERE id = :_id"
+
+            result = conn.execute(
+                text(query),
+                {"_id": _id}
+            )
+
+            # Confirmar transacción
+            conn.commit()
+            
+            return JSONResponse(
+                status_code=status.HTTP_200_OK,
+                content={
+                    "mensaje": "El usuario fue eliminado con exito", 
+                    "data": []
+                }
+            )
+        else :
+            return JSONResponse(
+                status_code=status.HTTP_404_NOT_FOUND,
+                content={
+                    "mensaje": f"El usuario con id {_id} no existe", 
+                    "data": []
+                }
+            )
+            
+
+    # Capturo errores si el problema es de la consulta    
+    except Exception as e:
         return JSONResponse(
-            status_code=status.HTTP_404_NOT_FOUND,
+            status_code=status.HTTP_400_BAD_REQUEST,
             content={
-                "mensaje": "El usuario con id '{_id}' no existe en nuestros registros.", 
+                "mensaje": e.args[0], 
                 "data": []
             }
         )
-    # Filtro la posicion y la saco
-    if _id:
-        for i, user in enumerate(users):
-            if user["id"] == _id:
-                posicion = i
-                break
-        removed_user = users.pop(posicion)    
-    
-    return JSONResponse(
+    """ 
+    try:
+
+
+
+
+        query = "DELETE FROM mod_usuarios_administradores WHERE id = :_id"
+
+        result = conn.execute(
+            text(query),
+            {"_id": _id}
+        )
+
+        # Confirmar transacción
+        conn.commit()
+        
+    except Exception as e:
+        return JSONResponse(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            content={
+                "mensaje": e.args[0], 
+                "data": []
+            }
+        )
+        
+         return JSONResponse(
         status_code=status.HTTP_200_OK,
         content={
             "mensaje": "El usuario fue eliminado con exito", 
-            "data": usuarios_filtrados
+            "data": []
         }
     )
+    """
 
 @user_router_administrador.put('/actualizarUA/{_idUsuario}', tags=["usuario-administrador"])
 def actualizarUA(
