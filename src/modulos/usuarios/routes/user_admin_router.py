@@ -20,73 +20,140 @@ user_router_administrador = APIRouter()
 
 # Usuarios Administradores
 @user_router_administrador.get('/listarUA', tags=["usuario-administrador"])
-def listarUA(
+async def listarUA(
     porPagina: int = Query(10, description="Número de items por página"),
     numeroPagina: int = Query(1, description="Número de página"),
     sort: Optional[str] = Query(None, description="Campo por el cual ordenar (ej: nombre, apellido)"),
     campoFiltro: Optional[str] = Query(None, description="Campo por el cual filtrar (ej: nombre, apellido)"),
     filtro: Optional[str] = Query(None, description="Valor del filtro"),
 ):
-
-    # Filtrado
-    usuarios_filtrados = users
+    # Construir la consulta base
+    query = "SELECT * FROM mod_usuarios_administradores"
+    
+    # Aplicación de filtros si existen
     if campoFiltro and filtro:
-        usuarios_filtrados = [
-            usuario for usuario in usuarios_filtrados
-            if filtro.lower() in str(usuario.get(campoFiltro, "")).lower()
-        ]
-
-    # Ordenamiento
+        query += f" WHERE {campoFiltro} LIKE :filtro_value"
+    
+    # Aplicación de ordenación si existe
     if sort:
-        usuarios_filtrados.sort(key=lambda usuario: usuario.get(sort, ""))
-
+        query += f" ORDER BY {sort}"
+    
     # Paginación
-    inicio = (numeroPagina - 1) * porPagina
-    fin = inicio + porPagina
-    content = usuarios_filtrados[inicio:fin]
+    offset = (numeroPagina - 1) * porPagina
+    query += f" LIMIT :limit OFFSET :offset"
+    
+    # Ejecutar la consulta y obtener la descripción de las columnas
+    try:
+        # Ejecutar la consulta con los parámetros
+        result = conn.execute(
+            text(query),
+            {"filtro_value": f"%{filtro}%" if filtro else "", "limit": porPagina, "offset": offset}
+        )
+        
+        # Obtener los nombres de las columnas
+        columns = [column[0] for column in result.cursor.description]  # Ahora usamos result.cursor.description para obtener las columnas
+        
+        # Obtener los resultados
+        rows = result.fetchall()
 
-    return JSONResponse(
-        status_code = status.HTTP_200_OK, 
-        content = content,
-    )
+        # Convertir las filas a diccionarios usando los nombres de las columnas
+        result_dicts = [dict(zip(columns, row)) for row in rows]
+
+    # Capturo errores si el problema es de la consulta    
+    except Exception as e:
+        return JSONResponse(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            content={
+                "mensaje": e.args[0], 
+                "data": []
+            }
+        )
+    
+    # Analizo si hay resultados de usuarios
+    if len(result_dicts):
+        mensaje = "Lista de usuarios encontrados" # Devuelve los resultados en formato de diccionario
+        result_dicts = result_dicts
+        return JSONResponse(
+            status_code = status.HTTP_200_OK,
+            content={
+                "mensaje": mensaje, 
+                "data": result_dicts
+            }
+        )
+    else:
+        mensaje= "No se encontraron registros"  # Devuelve los resultados en formato de diccionario
+        result_dicts = []
+        return JSONResponse(
+            status_code = status.HTTP_404_NOT_FOUND,
+            content={
+                "mensaje": mensaje, 
+                "data": result_dicts
+            }
+        )
+    
 @user_router_administrador.get('/detalleUA', tags=["usuario-administrador"])
 def detalleUA(
-    _campoFiltro: Optional[str] = Query(None, description="Campo por el cual filtrar"),
-    _palabraFiltro: Optional[str] = Query(None, description="Valor por el cual va a filtrar"),
+    campoFiltro: Optional[str] = Query(None, description="Campo por el cual filtrar"),
+    filtro: Optional[str] = Query(None, description="Valor por el cual va a filtrar"),
 ):
+    # Construir la consulta base
+    query = "SELECT * FROM mod_usuarios_administradores"
     
-    # Validar que _campoFiltro exista en los usuarios
-    for usuario in users:
-        if _campoFiltro not in usuario:
-            return JSONResponse(
-                status_code = status.HTTP_404_NOT_FOUND,
-                content={
-                    "mensaje": f"El campo '{_campoFiltro}' no existe en los datos de usuario.", 
-                    "data": []
-                }
-            )
+    # Aplicación de filtros si existen
+    if campoFiltro and filtro:
+        query += f" WHERE {campoFiltro} LIKE :filtro_value"
+    
+    # Ejecutar la consulta y obtener la descripción de las columnas
+    try:        
+        # Ejecutar la consulta con los parámetros
+        result = conn.execute(
+            text(query),
+            {"filtro_value": f"%{filtro}%" if filtro else ""}
+        )
         
-    # Filtrado
-    usuarios_filtrados = users
-    if _campoFiltro and _palabraFiltro:
-        usuarios_filtrados = [
-            usuario for usuario in usuarios_filtrados if _palabraFiltro.lower() in str(usuario.get(_campoFiltro, "")).lower()
-        ]
+        # Obtener los nombres de las columnas
+        columns = [column[0] for column in result.cursor.description]  # Ahora usamos result.cursor.description para obtener las columnas
+        
+        # Obtener los resultados
+        rows = result.fetchall()
 
-    if len(usuarios_filtrados):
-        mensaje = "Usuario encontrado con exito"
-        code = status.HTTP_200_OK
-    else:
-        mensaje = "Usuario no existe en nuestra base de datos"
-        code = status.HTTP_404_NOT_FOUND
+        # Convertir las filas a diccionarios usando los nombres de las columnas
+        result_dicts = [dict(zip(columns, row)) for row in rows]
+
+    # Capturo errores si el problema es de la consulta    
+    except Exception as e:
+        return JSONResponse(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            content={
+                "mensaje": e.args[0], 
+                "data": []
+            }
+        )
     
-    return JSONResponse(
-        status_code=code,
-        content={
-            "mensaje": mensaje, 
-            "data": usuarios_filtrados
-        }
-    )
+    # Analizo si hay resultados de usuarios
+    if len(result_dicts):
+        mensaje = "Usuarios encontrado" # Devuelve los resultados en formato de diccionario
+        result_dicts = result_dicts
+        return JSONResponse(
+            status_code = status.HTTP_200_OK,
+            content={
+                "mensaje": mensaje, 
+                "data": result_dicts
+            }
+        )
+    else:
+        mensaje= "No se encontraro ningun registro"  # Devuelve los resultados en formato de diccionario
+        result_dicts = []
+        return JSONResponse(
+            status_code = status.HTTP_404_NOT_FOUND,
+            content={
+                "mensaje": mensaje, 
+                "data": result_dicts
+            }
+        )
+    
+
+
 @user_router_administrador.post('/crearUA', tags=["usuario-administrador"])
 def crearUA(
     user: UserCreate
@@ -116,6 +183,7 @@ def crearUA(
                 "data": user.model_dump()
             }
         )
+
 @user_router_administrador.delete('/eliminarUA', tags=["usuario-administrador"])
 def eliminarUA(
     _id: int = Query(None, description="Id del usuario a eliminar"),
@@ -150,6 +218,7 @@ def eliminarUA(
             "data": usuarios_filtrados
         }
     )
+
 @user_router_administrador.put('/actualizarUA/{_idUsuario}', tags=["usuario-administrador"])
 def actualizarUA(
     _idUsuario: int, 
@@ -188,16 +257,3 @@ def actualizarUA(
         }
     )
     
-@user_router_administrador.get('/lista', tags=["usuario-administrador"])
-def lista():
-    result = conn.execute(
-        text("SELECT * FROM mod_usuarios_administradores")
-    )
-    users = result.fetchall()
-    for user in users:
-        print(f"ID: {user.id}, Name: {user.name}")
-    
-    #return JSONResponse(
-    #    status_code = status.HTTP_200_OK, 
-    #    content = users,
-    #)
