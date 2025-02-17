@@ -5,8 +5,13 @@ from ..models.user_model import User, UserCreate, UserUpdate
 from ....config.db import conn  #connection
 from sqlalchemy import text
 from ..tables.user_admin import users #data_tabla
+import json
+from cryptography.fernet import Fernet
   
-user_router_administrador = APIRouter()
+user_router_administrador = APIRouter() 
+
+key = Fernet.generate_key()
+f = Fernet(key)
 
 # Usuarios Administradores
 @user_router_administrador.get('/listarUA', tags=["usuario-administrador"])
@@ -18,7 +23,7 @@ async def listarUA(
     filtro: Optional[str] = Query(None, description="Valor del filtro"),
 ):
     # Construir la consulta base
-    query = "SELECT * FROM mod_usuarios_administradores"
+    query = "SELECT id, name, lastname, email, password FROM mod_usuarios_administradores"
     
     # Aplicación de filtros si existen
     if campoFiltro and filtro:
@@ -141,36 +146,43 @@ def detalleUA(
                 "data": result_dicts
             }
         )
-
+    
 @user_router_administrador.post('/crearUA', tags=["usuario-administrador"])
 def crearUA(
     user: UserCreate
 ):
-    # Filtrado
-    usuarios_filtrados = users
-    if user.correo:
-        usuarios_filtrados = [
-            usuario for usuario in usuarios_filtrados
-            if user.correo in str(usuario.get('correo', "")).lower()
-        ]
+    resultado = detalleUA('email', user.email)
 
-    if len(usuarios_filtrados):
+    if len(json.loads(resultado.body)['data']) > 0:
         return JSONResponse(
-            status_code=status.HTTP_409_CONFLICT,
+            status_code = status.HTTP_404_NOT_FOUND,
             content={
-                "mensaje": f"El correo'{user.correo}'ya esta registrador",
+                "mensaje": json.loads(resultado.body)['mensaje'], 
                 "data": []
             }
         )
-    else:
-        users.append(user.model_dump())
-        return JSONResponse(
-            status_code=status.HTTP_200_OK,
-            content={
-                "mensaje": "Usuario creado exitosamente", 
-                "data": user.model_dump()
-            }
-        )
+    
+    query = "INSERT INTO mod_usuarios_administradores (`name`, `lastname`, `email`, `password`, `password_dencrypt`) VALUES (:name, :lastname, :email, :password, :password_dencrypt)"
+    
+    conn.execute(
+        text(query),
+        {
+            "name": user.name, 
+            "lastname": user.lastname, 
+            "email": user.email, 
+            "password": f.encrypt(user.password.encode("utf-8")), 
+            "password_dencrypt": user.password
+        }
+    )
+    conn.commit() 
+
+    return JSONResponse(
+        status_code = status.HTTP_200_OK,
+        content={
+            "mensaje": "Usuario creado con exito", 
+            "data": []
+        }
+    )
 
 @user_router_administrador.delete('/eliminarUA', tags=["usuario-administrador"])
 def eliminarUA(
@@ -304,16 +316,3 @@ def actualizarUA(
             "data": item
         }
     )
-    
-'''
-    Ya funciona el 
-        listarUA
-        detalleUA
-        eliminarUA
-
-    Falta el 
-        crearUA
-        actualizarUA
-        autenticacion
-    
-'''
