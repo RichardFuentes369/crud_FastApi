@@ -24,3 +24,8 @@ http://localhost:8000/docs (documentacion endpoints)
             "data": item
         }
     )
+
+
+
+## Guia 
+https://www.youtube.com/watch?v=NzGTGQCI2fM

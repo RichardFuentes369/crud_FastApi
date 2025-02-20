@@ -24,8 +24,10 @@ async def http_error_handler(request: Request, call_next) -> Response | JSONResp
 def welcome():
     return RedirectResponse("/docs")
 
-# Usuarios
+# Login
 app.include_router(prefix="/login", router=login_router)
+
+# Usuarios
 app.include_router(prefix="/usuarios-administradores", router=user_router_administrador)
 app.include_router(prefix="/usuarios-finales", router=user_router_final)
 

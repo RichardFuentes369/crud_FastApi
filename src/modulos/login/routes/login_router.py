@@ -5,11 +5,10 @@ from typing import Annotated
 from jose import jwt
 
 login_router = APIRouter()
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login/token")
 
 users = {
-    "pablo": {"username": "pablo", "email": "pablo@gmail.com", "password": "password"},
-    "ronald": {"username": "ronal", "email": "ronald@gmail.com", "password": "password"}
+    "pablo": {"username": "pablo", "email": "pablo@gmail.com", "password": "password"}
 }
 
 def encode_token(payload: dict) -> str:
@@ -17,7 +16,7 @@ def encode_token(payload: dict) -> str:
     return token
 
 def decode_token(token: Annotated[str, Depends(oauth2_scheme)]) -> dict: 
-    data = jwt.decode(token, "my-secret", algorithm=["HS256"])
+    data = jwt.decode(token, "my-secret", algorithms=["HS256"])
     user = users.get(data['username'])
     return user
 
@@ -26,7 +25,7 @@ def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]):
     user = users.get(form_data.username)
     if not user or form_data.password != user["password"]:
         return JSONResponse(
-            status_code = status.HTTP_400_BAD_REQUEST, 
+            status_code = status.HTTP_401_UNAUTHORIZED, 
             content = {
                 "mensaje": f"Error al iniciar la sessión.", 
                 "data": []
@@ -35,8 +34,8 @@ def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]):
     token = encode_token({"username": user["username"], "email": user["email"]})
     return { "access_token": token }
 
-@login_router.get('/user/profile', tags=["login"])
-def profile(my_user: Annotated[dict, Depends(decode_token)]):
-    return my_user
+@login_router.get('/profile', tags=["login"])
+def profile(current_user: Annotated[dict, Depends(decode_token)]):
+    return current_user
 
 

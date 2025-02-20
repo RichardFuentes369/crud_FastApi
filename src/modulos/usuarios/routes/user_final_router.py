@@ -14,7 +14,7 @@ key = Fernet.generate_key()
 f = Fernet(key)
 
 # Usuarios Finales
-@user_router_final.get('/listarUF', tags=["usuario-finales"])
+@user_router_final.get('/listarUF', tags=["usuarios-finales"])
 async def listarUF(
     porPagina: int = Query(10, description="Número de items por página"),
     numeroPagina: int = Query(1, description="Número de página"),
@@ -86,16 +86,16 @@ async def listarUF(
             }
         )
     
-@user_router_final.get('/detalleUF', tags=["usuario-finales"])
+@user_router_final.get('/detalleUF', tags=["usuarios-finales"])
 def detalleUF(
     campoFiltro: Optional[str] = Query(None, description="Campo por el cual filtrar"),
-    filtro: Optional[str] = Query(None, description="Valor por el cual va a filtrar"),
+    palabraFiltro: Optional[str] = Query(None, description="Valor por el cual va a filtrar"),
 ):
     # Construir la consulta base
     query = "SELECT * FROM mod_usuarios_finales"
     
     # Aplicación de filtros si existen
-    if campoFiltro and filtro:
+    if campoFiltro and palabraFiltro:
         query += f" WHERE {campoFiltro} LIKE :filtro_value"
     
     # Ejecutar la consulta y obtener la descripción de las columnas
@@ -103,7 +103,7 @@ def detalleUF(
         # Ejecutar la consulta con los parámetros
         result = conn.execute(
             text(query),
-            {"filtro_value": f"%{filtro}%" if filtro else ""}
+            {"filtro_value": f"%{palabraFiltro}%" if palabraFiltro else ""}
         )
         
         # Obtener los nombres de las columnas
@@ -147,7 +147,7 @@ def detalleUF(
             }
         )
     
-@user_router_final.post('/crearUF', tags=["usuario-finales"])
+@user_router_final.post('/crearUF', tags=["usuarios-finales"])
 def crearUF(
     user: UserCreate
 ):
@@ -184,7 +184,7 @@ def crearUF(
         }
     )
 
-@user_router_final.delete('/eliminarUF', tags=["usuario-finales"])
+@user_router_final.delete('/eliminarUF', tags=["usuarios-finales"])
 def eliminarUF(
     _id: int = Query(None, description="Id del usuario a eliminar"),
 ):        
@@ -246,7 +246,7 @@ def eliminarUF(
             }
         )
 
-@user_router_final.put('/actualizarUF/{_idUsuario}', tags=["usuario-finales"])
+@user_router_final.put('/actualizarUF/{_idUsuario}', tags=["usuarios-finales"])
 def actualizarUF(
     _idUsuario: int, 
     user: UserUpdate

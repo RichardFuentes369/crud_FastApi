@@ -1,5 +1,5 @@
-from typing import Optional
-from fastapi import Query, status, Body, APIRouter
+from typing import Optional, Annotated
+from fastapi import Query, status, Body, APIRouter, Header, Request, Response, Depends
 from fastapi.responses import JSONResponse
 from ..models.user_model import User, UserCreate, UserUpdate
 from ....config.db import conn  #connection
@@ -89,13 +89,13 @@ async def listarUA(
 @user_router_administrador.get('/detalleUA', tags=["usuario-administrador"])
 def detalleUA(
     campoFiltro: Optional[str] = Query(None, description="Campo por el cual filtrar"),
-    filtro: Optional[str] = Query(None, description="Valor por el cual va a filtrar"),
+    palabraFiltro: Optional[str] = Query(None, description="Valor por el cual va a filtrar"),
 ):
     # Construir la consulta base
     query = "SELECT * FROM mod_usuarios_administradores"
     
     # Aplicación de filtros si existen
-    if campoFiltro and filtro:
+    if campoFiltro and palabraFiltro:
         query += f" WHERE {campoFiltro} LIKE :filtro_value"
     
     # Ejecutar la consulta y obtener la descripción de las columnas
@@ -103,7 +103,7 @@ def detalleUA(
         # Ejecutar la consulta con los parámetros
         result = conn.execute(
             text(query),
-            {"filtro_value": f"%{filtro}%" if filtro else ""}
+            {"filtro_value": f"%{palabraFiltro}%" if palabraFiltro else ""}
         )
         
         # Obtener los nombres de las columnas
